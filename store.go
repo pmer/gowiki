@@ -4,25 +4,32 @@ import (
 	"database/sql"
 	"errors"
 	_ "github.com/mattn/go-sqlite3"
+	"time"
 )
 
 var db *sql.DB
 
 var createStmt = `
-CREATE TABLE IF NOT EXISTS todos (
-	id INTEGER PRIMARY KEY,
-	title TEXT NOT NULL,
-	notes TEXT NOT NULL,
-	location INTEGER NOT NULL,
-	checked INTEGER NOT NULL
+CREATE TABLE IF NOT EXISTS versions (
+	created INTEGER PRIMARY KEY,
+	data BLOB NOT NULL
 );
 `
 
-var getStmt *sql.Stmt
-var getSrc = "SELECT title, notes, location, checked FROM todos WHERE title = ?"
+var insertStmt *sql.Stmt
+var insertSrc = "INSERT INTO versions(created, data) VALUES(?, ?)"
 
-func StoreGetTodo(title string) (*Todo, error) {
-	rows, err := getStmt.Query(title)
+func StoreSet(data []byte) error {
+	created := time.Now().UnixNano()
+	_, err := insertStmt.Exec(created, data)
+	return err
+}
+
+var getStmt *sql.Stmt
+var getSrc = "SELECT data FROM versions ORDER BY created DESC LIMIT 1"
+
+func StoreGet() ([]byte, error) {
+	rows, err := getStmt.Query()
 	if err != nil {
 		return nil, err
 	}
@@ -40,9 +47,9 @@ func StoreGetTodo(title string) (*Todo, error) {
 		return nil, rows.Err()
 	}
 
-	var todo *Todo = &Todo{}
+	var data []byte
 
-	err = rows.Scan(&todo.Title, &todo.Notes, &todo.Location, &todo.Checked)
+	err = rows.Scan(&data)
 	if err != nil {
 		rows.Close()
 		return nil, err
@@ -61,24 +68,7 @@ func StoreGetTodo(title string) (*Todo, error) {
 	}
 
 	rows.Close()
-	return todo, nil
-}
-
-var insertStmt *sql.Stmt
-var insertSrc = `
-INSERT INTO todos(title, notes, location, checked)
-       VALUES(?, ?, ?, ?)
-	   ON CONFLICT(id)
-	       DO UPDATE
-		   SET title=excluded.title,
-		       notes=excluded.notes,
-			   location=excluded.location,
-			   checked=excluded.checked
-`
-
-func StoreSetTodo(todo Todo) error {
-	_, err := insertStmt.Exec(todo.Title, todo.Notes, todo.Location, todo.Checked)
-	return err
+	return data, nil
 }
 
 func StoreConstruct() error {
@@ -92,12 +82,12 @@ func StoreConstruct() error {
 		return err
 	}
 
-	getStmt_, err := db_.Prepare(getSrc)
+	insertStmt_, err := db_.Prepare(insertSrc)
 	if err != nil {
 		return err
 	}
 
-	insertStmt_, err := db_.Prepare(insertSrc)
+	getStmt_, err := db_.Prepare(getSrc)
 	if err != nil {
 		return err
 	}
@@ -109,6 +99,7 @@ func StoreConstruct() error {
 }
 
 func StoreDestroy() {
+	insertStmt.Close()
 	getStmt.Close()
 	db.Close()
 }
