@@ -1,4 +1,5 @@
 #!/bin/sh
+rm gowiki.db
 ./gowiki &
 
 sleep 1
