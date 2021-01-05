@@ -52,6 +52,8 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+
 	if r.Method == "GET" {
 		viewHandler(w, r)
 	} else if r.Method == "POST" {
