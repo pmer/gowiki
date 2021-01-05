@@ -49,8 +49,6 @@ func saveHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 		return
 	}
-
-	//io.Write(w, "OK")
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
