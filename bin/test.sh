@@ -1,6 +1,6 @@
 #!/bin/sh
 rm -f gowiki.db
-./gowiki &
+./tree-sap &
 
 sleep 1
 
