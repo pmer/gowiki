@@ -1,5 +1,5 @@
 #!/bin/sh
-export GOPATH=$PWD
+export GOPATH=/tmp
 
 go get \
     github.com/DataDog/zstd \
