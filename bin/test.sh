@@ -4,6 +4,6 @@ rm -f gowiki.db
 
 sleep 1
 
-curl --data-binary @wiki.go localhost:8080
-curl localhost:8080 >wiki.go.copy
-cmp wiki.go wiki.go.copy
+curl --data-binary @tree-sap.go localhost:8080
+curl localhost:8080 >tree-sap.go.copy
+cmp tree-sap.go tree-sap.go.copy
